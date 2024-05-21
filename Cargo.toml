@@ -1,0 +1,13 @@
+[package]
+name = "evolutionary_runner"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "evolutionary-runner"
+path = "src/main.rs"
+
+[dependencies]
+evongin = { git = "https://github.com/JoshuaVandaele/Evongin.git" }
+nalgebra = "0.32.5"
+sdl2 = "0.36.0"
