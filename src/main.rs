@@ -56,12 +56,8 @@ fn main() {
     );
 
     let mut scene = Scene::new(Camera::new(
-        sdl2::surface::Surface::new(
-            WINDOW_WIDTH,
-            WINDOW_HEIGHT,
-            sdl2::pixels::PixelFormatEnum::RGB24,
-        )
-        .unwrap(),
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT,
         Transform::default(),
     ));
 
