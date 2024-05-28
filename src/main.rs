@@ -1,17 +1,15 @@
-use std::time::{Duration, Instant};
-
+use evongin::components::camera::Camera;
 use evongin::components::colliders::circlecollider::CircleCollider;
 use evongin::components::colliders::polycollider::PolyCollider;
 use evongin::components::rigidbody::Rigidbody;
+use evongin::components::scene::Scene;
 use evongin::components::shapes::circle::Circle;
 use evongin::components::shapes::rect::Rect;
+use evongin::components::simulation::Simulation;
 use evongin::components::transform::Transform;
 
-use evongin::traits::collider::Collider;
-use evongin::traits::physics::Physics;
 use nalgebra::{Rotation2, Vector2};
 use sdl2::pixels::Color;
-use sdl2::render::Canvas;
 use sdl2::video::Window;
 
 const WINDOW_WIDTH: u32 = 800;
@@ -26,8 +24,6 @@ fn main() {
         .position_centered()
         .build()
         .unwrap();
-
-    let mut canvas: Canvas<Window> = window.into_canvas().build().unwrap();
 
     let transform = Transform::new(
         Vector2::new(0.0, WINDOW_HEIGHT as f32 - 33.0),
@@ -53,37 +49,27 @@ fn main() {
         Color::RGB(255, 0, 0),
     );
 
-    let mut player_rigidbody = Rigidbody::new(
+    let player_rigidbody = Rigidbody::new(
         Vector2::new(0.0, 100.0),
         Vector2::new(0.0, 0.0),
         Box::new(CircleCollider::new(Box::new(player))),
     );
 
-    let mut event_pump = sdl_context.event_pump().unwrap();
+    let mut scene = Scene::new(Camera::new(
+        sdl2::surface::Surface::new(
+            WINDOW_WIDTH,
+            WINDOW_HEIGHT,
+            sdl2::pixels::PixelFormatEnum::RGB24,
+        )
+        .unwrap(),
+        Transform::default(),
+    ));
 
-    let mut last_instant = Instant::now();
+    scene.add_object(Box::new(player_rigidbody));
+    scene.add_collider(Box::new(ground_collider));
+    scene.add_object(Box::new(ground));
 
-    'running: loop {
-        let delta_time = last_instant.elapsed().as_secs_f32();
-        last_instant = Instant::now();
+    let mut simulation = Simulation::new(window, vec![scene], 0);
 
-        for event in event_pump.poll_iter() {
-            match event {
-                sdl2::event::Event::Quit { .. } => break 'running,
-                _ => {}
-            }
-        }
-
-        canvas.set_draw_color(Color::RGB(0, 0, 0));
-        canvas.clear();
-
-        ground_collider.get_shape().draw(&mut canvas);
-        player_rigidbody.collider.get_shape().draw(&mut canvas);
-        player_rigidbody.update(delta_time, &vec![Box::new(ground_collider.clone())]);
-
-        canvas.present();
-        ::std::thread::sleep(
-            Duration::new(0, 1_000_000_000u32 / 60).saturating_sub(last_instant.elapsed()),
-        );
-    }
+    simulation.run();
 }
